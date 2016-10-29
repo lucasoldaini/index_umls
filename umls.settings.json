@@ -1,0 +1,35 @@
+{
+    "settings": {
+        "index" : {
+            "number_of_replicas" : 0,
+            "number_of_shards": 1
+        },
+        "analysis": {
+            "analyzer": {
+                "text_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "apostrophe",
+                        "lowercase"
+                    ]
+                }
+            }
+        }
+    },
+    "mappings": {
+        "concept": {
+            "properties": {
+                "atoms": {
+                    "type": "string",
+                    "similarity": "LMDirichlet",
+                    "analyzer": "text_analyzer"
+                },
+                "is_preferred": {
+                    "type": "boolean",
+                    "index": "not_analyzed"
+                }
+            }
+        }
+    }
+}

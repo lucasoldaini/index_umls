@@ -2,18 +2,17 @@ from __future__ import unicode_literals, division, print_function
 
 import codecs
 
-from utils.config_loader import parse_config
 from utils import elastic
 
-MRCONSO_PATH = ('/lustre/irlab/datasets/umls-2015ab/'
-                'installation/META/MRCONSO.RRF')
+MRCONSO_PATH = '/mnt/blue-hd/ls/datasets/UMLS/full/META/MRCONSO.RRF'
 
-# a description of headers is available at http://www.ncbi.nlm.nih.gov/books/NBK9685/table/ch03.T.concept_names_and_sources_file_mr/?report=objectonly
+# a description of headers is available at
+# http://www.ncbi.nlm.nih.gov/books/NBK9685/table/ch03.T.concept_names_and_sources_file_mr/?report=objectonly
 HEADERS = ['cui', 'lat', 'ts', 'lui', 'stt', 'sui', 'ispref', 'aui', 'saui',
            'scui', 'sdui', 'sab', 'tty', 'code', 'str', 'srl', 'suppress',
            'cvf']
 
-MAPPING = 'settings/umls.json'
+MAPPING = 'umls.settings.json'
 INDEX_NAME = 'umls'
 DOC_TYPE = 'concept'
 
@@ -45,18 +44,23 @@ def mrconso_iterator(path=MRCONSO_PATH, headers=HEADERS):
 
     yield current_concept
 
-def main(opts):
-    es = elastic.get_client_from_opts(opts)
-    opts.index_name = INDEX_NAME
-    opts.doc_type = DOC_TYPE
+
+def main():
+    es = elastic.get_client(
+        index_name=INDEX_NAME,
+        doc_type=DOC_TYPE,
+        timeout=120
+    )
 
     elastic.create_index(
-        index_name=INDEX_NAME, index_settings_path=MAPPING, es_client=es)
+        index_name=INDEX_NAME,
+        index_settings=MAPPING,
+        es_client=es
+    )
 
     mrconso = mrconso_iterator()
-    elastic.index_in_bulk(documents=mrconso, opts=opts)
+    elastic.index_in_bulk(documents=mrconso, verbose=True, es_client=es)
 
 
 if __name__ == '__main__':
-    main_opts, _ = parse_config('settings/project.json')
-    main(main_opts)
+    main()
